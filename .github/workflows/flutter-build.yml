@@ -1,0 +1,41 @@
+name: Flutter APK Build
+
+on:
+  push:
+    branches:
+      - main  # ejecuta el workflow cuando subes algo a main
+  workflow_dispatch: # también permite ejecutarlo manualmente
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Descargar tu repo
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. Instalar Flutter (última versión estable)
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 'stable'
+
+      # 3. Instalar dependencias
+      - name: Install dependencies
+        run: flutter pub get
+
+      # 4. (opcional) Generar adaptadores de Hive u otros generadores
+      - name: Build Hive adapters
+        run: flutter pub run build_runner build --delete-conflicting-outputs || true
+
+      # 5. Compilar el APK en modo release
+      - name: Build APK
+        run: flutter build apk --release
+
+      # 6. Subir el APK compilado como artefacto descargable
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release
+          path: build/app/outputs/flutter-apk/app-release.apk
